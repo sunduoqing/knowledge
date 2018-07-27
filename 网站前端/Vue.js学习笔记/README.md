@@ -20,7 +20,8 @@
         2. 若是会变化的量，则必须放在组件内（`data`或`computed`）。
     2. 注意内存泄漏
     
-        在vue实例内部`new`的其他实例或DOM，应放在`data`内进行掌控，当使用完毕后引导垃圾回收。
+        在Vue实例内部`new`的其他实例或DOM，应放在`data`内进行掌控，当使用完毕后引导垃圾回收。
+
 1. 模板插值
 
     1. 支持JS表达式（单个），不支持~~语句~~、~~流控制~~。
@@ -53,7 +54,7 @@
     5. 所有渲染结果不包含`<template>`
 2. 指令
 
-    指令（Directives）是带有`v-`前缀的DOM的特殊属性。
+    指令（directives）是带有`v-`前缀的DOM的特殊属性。
 
     >JS表达式的值改变时，将响应式地改变DOM。
 
@@ -84,7 +85,7 @@
             </div>
             ```
 
-            >没有提供`key`属性：若数据项的顺序被改变，Vue将不会移动DOM来匹配数据项的顺序，而是简单复用每个DOM，确保渲染内容正确。
+            >（针对相同父元素的子元素）没有提供`key`属性：若数据项的顺序被改变，Vue将不会~~移动DOM来匹配数据项的顺序~~；而是保持原DOM尽量不变化，尽量仅修改DOM的属性，从而确保渲染内容正确。
     4. `v-bind`绑定DOM属性与JS表达式的结果。
 
         >此DOM属性随表达式最终值改变而改变，直接修改此DOM属性值不改变表达式的值。
@@ -194,7 +195,7 @@
                 鼠标。
             4. `.native`
 
-                监听组件根元素的原生事件，在父级引用子组件处添加。
+                监听组件根元素的原生事件，仅在父级引用子组件处添加。
             5. `.exact`
 
                 精确匹配（有其他按键则失败）。
@@ -349,13 +350,13 @@
     
         `v-自定义指令名`或`v-自定义指令名="表达式"`
     
-        1. 全局注册
+        1. 全局
         
             ```javascript
             // 在全局的模板内使用
             Vue.directive('自定义指令名', 钩子对象)
             ```
-        2. 局部注册
+        2. 局部
         
             ```javascript
             new Vue({
@@ -391,17 +392,21 @@
 3. Vue实例的属性：
 
     `new Vue(对象)`
-
+    
     1. `el`（字符串）：选择器
     2. `methods`（对象）：可调用方法
+    
+        >`new`methods里的方法，方法体内的`this`指向这个实例，而非Vue实例。建议不要在methods中添加构造函数，而改用`import`方式引入构造函数。
     3. `data`（对象）：数据
         
         >组件的`data`是方法。
-    4. `computed`（对象）：依赖的值（大部分是`data`中的属性）改变而执行（不允许在`data`中出现同样的属性）
+    4. `computed`（对象）：依赖其他值（`props`、`data`、`computed`）的改变而执行，最后`return`值
 
         <details>
         <summary>默认是<code>get</code>（初始化时会调用一次），也可以显式设置<code>get</code>和<code>set</code>（被赋值时执行）</summary>
 
+        当没有设置`set`时，不能主动去设置`computed`的值（~~`this.计算属性 = 值`~~）；设置了`set`也不能改变自己的值（`set`函数里不能再循环设置自己的值）。
+        
         ```javascript
         // e.g.
         const vm = new Vue({
@@ -420,6 +425,7 @@
                 const names = newValue.split(' ')
                 this.firstName = names[0]
                 this.lastName = names[names.length - 1]
+                // 不允许`this.fullName = 值`会导致死循环
               }
             }
           }
@@ -429,25 +435,30 @@
         ```
         </details>
 
-    >要用到的数据必须添加初始值（在`data`或`computed`中定义）。
+    >在（`props`、）`data`、`computed`先定义再使用，而不要对未使用过的变量进行`this.新变量名 = 值`。
 
-    5. `watch`（对象）：被watch的`data`或`computed`属性改变而执行（必须是`data`或`computed`的属性）
+    5. `watch`（对象）：被watch的（`props`或）`data`或`computed`属性改变而执行（必须是`props`或`data`或`computed`的属性）
     
         可以设置`immediate`（侦听开始后立即调用一次）和`deep`参数。
     
-    >执行顺序是：`data`->`computed`->`watch`。
+    >执行顺序是：（`props`->）`data`->`computed`->`watch`。
     
     6. `filters`（对象）：过滤器方法
+    
+        >因为不是Vue实例代理属性，所以可以和Vue实例代理（`props`、`data`、`computed`、`methods`）的属性同名。
     7. `components`（对象）：局部注册组件（仅在此Vue实例中可用）
     8. 生命周期钩子
 
         1. `beforeCreate`
         
-        >实例的`data`（、`computed`、`watch`等实例内容）的创建，是在`beforeCreate`之后、`created`之前。
+        >实例的（`props`、）`data`、`computed`、`watch`等实例内容的创建，在`beforeCreate`之后、`created`之前。
         
         2. `created`
         3. `beforeMount`
         4. `mounted`
+        
+        >页面加载后就要展现的数据，可以在`created`、`beforeMount`、`mounted`进行（`vue-router`等封装了更方便的钩子，可以控制比如在数据加载完毕后再进行跳转）。
+        
         5. `beforeUpdate`
         6. `updated`
         7. `activated`
@@ -467,13 +478,16 @@
         
         ![vue生命周期](./images/vue-lifecycle-1.png)
         </details>
-    9. `mixins`（数组，每一项为Vue属性对象）：混合
+    9. `mixins`（数组，每一项为Vue实例的属性）：混入
 
-        1. 当组件和混合对象含有同名选项时，这些选项将以恰当的方式混合。
-        2. 混合对象的**钩子**将在组件自身钩子之前调用。
-        3. 值为对象的选项（例如`methods`、`components`、`directives`），将被混合为同一个对象；两个对象键名冲突时，取组件对象的键值对。
+        mixin数组每一项中的属性，都会合并到组件本身的选项（如：mixin的`methods`合并到组件的`methods`、mixin的`data`合并到组件的`data`）。
 
-        - `Vue.mixin`全局注册混合对象，将会影响所有之后创建的（之前的不受影响）Vue实例，包括第三方模板。
+        1. 钩子函数都会调用：混入对象的钩子优先调用，组件自身的钩子之后调用。
+        2. 非钩子函数属性，若有同名内容，则合并之后，组件自身内容覆盖mixin：
+
+            `methods`、`components`、`directives`等，合并为同一个对象；对象内部键名冲突时（如`methods`都有某同名方法），使用组件对象的内容、丢弃mixin的内容。
+
+        - `Vue.mixin`全局注册混入对象，将会影响所有之后创建的（之前的不受影响）Vue实例，包括第三方模板。
 4. 组件
 
     >所有Vue组件同时也都是Vue实例。
@@ -516,15 +530,13 @@
 
                 - 验证：
 
-                    >`props`会在组件实例创建之前进行校验。
-
                     1. 原生构造器（`String`、`Number`、`Boolean`、`Function`、`Object`、`Array`、`Symbol`）、`null`（允许任何类型）
                     2. 数组
                     3. 对象（type、required、default、validator）
         3. `data`（方法）：`return`数据对象
 
             ```javascript
-            data: function () {
+            data () {
               return {
                 a: 0,
                 b: ''
@@ -636,42 +648,42 @@
                 1. `props`是单向传递的：当父级的属性变化时，将传导给子组件，不会反过来
                 
                     每次父组件更新时，子组件的所有prop都会更新为最新值。
-                2. 不应该在子组件内部改变`props`，而应该用`props`去初始化组件内的局部变量（`computed`或`data`）,或`watch`传进来的`props`而做一些函数
-
+                2. 不应该 ~~在子组件内部改变`props`~~（只能`$emit`到父级再由父级传`props`进子组件来改变）。
+                
+                    1. 仅展示：直接在模板引用`props`。
+                    2. 一次性传值（仅首次传值有效，后续传值无法修改`data`）：`props`->`data`。
+                    3. 每次对传值内容进行修改后使用：`props`->`computed`。
+                    4. 每次根据传值内容进行其他逻辑：`props`->`watch`。
+                    
                     <details>
                     <summary>e.g.</summary>
 
                     ```javascript
-                    // good
                     Vue.component(
                       'myComponent',
                       {
-                        props: ['father'],
+                        props: ['father'], // 可以直接用在子组件内展示
+                        data () {
+                          return {
+                            son1: this.father  // 仅接受首次传值，后续的props变化不再改变
+                          }
+                        },
                         computed: {
-                          son() {
-                            return this.father
+                          son2() {
+                            return this.father // 每次对传值内容进行修改后使用
                           }
                         },
                         watch: {
-                          father(data) {
+                          father(data) { // 每次根据传值内容进行其他逻辑
                             console.log(data)
                           }
                         },
-                        template: '<div>{{son}}</div>'
-                      }
-                    )
-
-
-                    // bad
-                    Vue.component(
-                      'myComponent',
-                      {
-                        props: ['father'],
-                        template: '<div>{{father}}</div>'
+                        template: '<div>{{ father }}-{{ son1 }}- {{ son2 }}</div>'
                       }
                     )
                     ```
                     </details>
+                    
                 >注意避免**引用数据类型**导致的子组件改变父级。
             2. 子->父：通过`$emit`向上传递事件、参数
 
@@ -719,8 +731,56 @@
         6. 高级异步组件。
         7. 递归组件。
         8. 循环组件。
-5. 过渡&动画
-6. 插件
+5. 单文件组件
+
+    1. （有导出的）组件内部可以直接引用自身组件（小心无止境的循环引用）
+    2. 大部分都用局部注册。
+    3. <details>
+
+        <summary>（不推荐）可以在组件内部（或Vue实例内部）再创建另一个Vue实例，并且可以互相通信</summary>
+
+        主要为了解决：要挂载到不在组件操作范围内的DOM。
+
+        ```javascript
+        // 某单文件组件One.vue
+        import Vue from 'vue'
+        import store from '@/store'
+        import router from '@/router'
+        import Other from '@/components/Other.vue'
+
+        export default {
+          data () {
+            return {
+              text: '123'
+            }
+          },
+          mounted () {
+            // 新建一个Vue实例
+            const OtherVue = Vue.extend(Other)  // 先定义
+            const dom = new OtherVue({  // 后定义，类似于mixin的合并逻辑（钩子：先定义执行->后定义执行；非钩子：后定义执行、先定义忽略）
+              store,  // 共享store
+              router, // 共享router
+              created () {  // 合并。先定义的钩子先执行，后定义的钩子后执行
+                console.log('fatehr created')
+              },
+              methods: {  // 合并。若属性名相同则后定义的覆盖先定义的
+                changeFatherText: () => {
+                  this.text = Math.random() // this为当前的组件One.vue
+                }
+              },
+              computed: {  // 合并。若属性名相同则后定义的覆盖先定义的
+                fuck: () => {
+                  return this.text  // // this为当前的组件One.vue
+                }
+              }
+            }).$mount().$el
+            document.getElementById('other').append(dom)    // 要挂载到不在组件操作范围内的DOM
+          }
+        }
+        ```
+        </details>
+6. 过渡&动画
+7. 插件
 
     ```javascript
     // 插件是.js文件，应当有一个公开的install方法
@@ -734,19 +794,17 @@
       Vue.directive('my-directive', {
         bind (el, binding, vnode, oldVnode) {
           // 逻辑...
-        }
-        ...
+        },
       })
     
       // 3. 注入组件
       Vue.mixin({
         created: function () {
           // 逻辑...
-        }
-        ...
+        },
       })
     
-      // 4. 添加实例方法
+      // 4. 添加实例方法（约定用`$`开头来命名原型自定义属性）
       Vue.prototype.$myMethod = function (methodOptions) {
         // 逻辑...
       }
@@ -756,15 +814,17 @@
     // 在其他地方使用
     Vue.use(MyPlugin, { someOption: true })  // Vue.use会自动阻止多次注册相同插件，届时只会注册一次该插件。
     ```
-7. 特性
+8. 特性
 
-    1. 重用DOM（尽量在已存在的DOM上做修改，而不是移除DOM再新建DOM）
+    1. 重用DOM（尽量在已存在的DOM上做修改、保持原DOM尽量不变化，而不是~~移除再新建DOM或移动DOM~~）
 
-        1. 当没有`key`属性或`key`属性相同时：最大化重用DOM。
+        >针对：相同父元素的子元素。
+
+        1. 当没有`key`属性或`key`属性相同时（重复的`key`可能造成渲染错误）：最大化重用DOM。
         2. 切换的DOM的`key`属性不同：不重用DOM。
-    2. Vue实例代理`data`、`methods`、`computed`、`props`的属性内容，可以直接修改或调用；也有以`$`开头的Vue实例属性（如`$el`、`$data`、`$watch`）。
+    2. Vue实例代理`props`、`data`、`computed`、`methods`的属性内容（在内部可以`this.名字`访问），可以直接修改或调用，**所有属性名字都不能重复**；也有以`$`开头的Vue实例属性（如`$el`、`$data`、`$watch`）。
 
-        只有已经被代理的内容是响应的（Vue实例被创建时的`data`、`computed`），值的改变（可能）会触发视图的重新渲染。
+        只有已经被代理的内容是响应的（Vue实例被创建时的`props`、`data`、`computed`），值的改变（可能）会触发视图的重新渲染。
 
         1. 导致视图更新：
 
@@ -786,10 +846,10 @@
         不受限制、不需要转换：JS字符串模版、`.vue`组件。
 
         >JS字符串模版：`<script type="text/x-template">`、JS内联模板字符串。
-8. 虚拟DOM
+9. 虚拟DOM
 
     在底层的实现上，Vue将模板编译成虚拟DOM渲染函数。结合响应系统，Vue能够智能地计算出最少需要重新渲染多少组件，并把DOM操作次数减到最少。
-9. 双向绑定
+10. 双向绑定
 
     1. `Object.defineProperty`
     
@@ -853,7 +913,6 @@
         parseQuery/stringifyQuery: 方法,
         fallback: 方法,
       }),
-      ...
     })
     ```
 2. 内置组件
@@ -905,11 +964,13 @@
             <summary>检测路由变化，可以在组件中<code>watch</code>注入的<code>$route</code>或使用额外的钩子（导航守卫）</summary>
 
             ```javascript
-            watch: {
-              '$route' (to, from) {
-                // 对路由变化作出响应...
+            new Vue({
+              watch: {
+                '$route' (to, from) {
+                  // 对路由变化作出响应...
+                }
               }
-            }
+            })
             ```
             </details>
     3. 增加钩子：`beforeRouteEnter`、`beforeRouteUpdate`、`beforeRouteLeave`
@@ -959,221 +1020,244 @@
 ### [vuex](https://github.com/vuejs/vuex)
 >store的概念：vuex提供的容器，state的集合。
 
-一个专为Vue.js应用程序开发的**状态管理模式**。采用集中式存储管理应用的所有组件的状态（仅一个实例对象就能负责保存整个应用的状态，“唯一数据源”），并以相应的规则保证状态以一种可预测的方式发生变化。vuex的状态存储是响应式的，若store中的状态发生变化，则有读取状态的组件（`computed`依赖状态或直接输出状态）也会相应地得到高效更新。
+一个专为Vue.js应用程序开发的**状态管理模式**。采用集中式存储管理应用的所有组件的状态（仅一个实例对象就能负责保存整个应用的状态，“唯一数据源”），并以相应的规则保证状态以一种可预测的方式发生变化。vuex的状态存储是**响应式的**，若store中的状态发生变化，则有读取状态的组件（`computed`依赖状态或直接输出状态）也会相应地得到高效更新。
 
 ![vuex流程图](./images/vuex-1.png)
 
-1. 核心
+1. `state`
 
-    1. `state`
+    状态（仅能在mutation方法体内改变state）。
 
-        状态（仅能在mutation方法体内改变state）。
-
+    1. 通过store的`state.state名`获取。
+    2. 响应规则
+    
         1. 最好提前初始化所需的state（初始化的任何位置都可以被劫持而更新）。
         2. 直接用`=`进行已初始化的state属性更新。
-        3. 需要在state或state.对象上添加新属性：
-        
+        3. 需要在state或`state.对象`上添加新属性：
+    
             1. `Vue.set(state或state.对象, '新属性名', 值)`
             2. `state.对象 = { ...state.对象, '新属性名': 值 }`
 
-        - <details>
+    - <details>
+    
+        <summary><code>mapState</code></summary>
+    
+        返回对象，用于组件`computed`属性的简写（`data1 () { return this.$store.state.state1 }`）。
         
-            <summary><code>mapState</code></summary>
+        ```javascript
+        // 组件中
+        import { mapState } from 'vuex'
         
-            返回对象，用于组件`computed`属性的简写。
-            
-            ```javascript
-            // 组件中
-            import { mapState } from 'vuex'
-            ...
-            
-            computed: {
-              ...mapState({
-                // 不需要使用vue组件this
-                data1: state => state.state1,  // 等价于：data1: 'state1'
-            
-                // 需要使用vue组件this
-                data2 (state) {
-                  return state.state2 + this.组件属性
-                }
-              }),
-              // 或
-              ...mapState([ // computed使用与state属性相同名字可用数组
-                'state1',
-                'state2'
-              ])
-            },
-            ```
-            </details>
-    2. `getters`
+        new Vue({
+          computed: {
+            ...mapState({
+              // 不需要使用组件属性
+              data1: 'state1',  // 等价于：data1: state => state.state1,
+          
+              // 需要使用组件属性
+              data2 (state) {
+                return state.state2 + this.组件属性
+              }
+            }),
+            // 或
+            ...mapState([ // computed使用与state属性相同名字可用数组
+              'state1',
+              'state2'
+            ])
+          },
+        })
+        ```
+        </details>
+2. `getters`
 
-        >类似vue实例的`computed`。
-        
-        根据方法返回值的依赖而改变的类似state的值（仅能在自己的getter中改变值）。
+    由state或其他getter派生的值。
+    
+    1. 通过store的`getters['getter名']`获取。
+    2. 根据方法返回值的依赖而改变（仅能在自己的getter中改变值，不能在其他getter或mutations或actions改变值），store的计算属性。
+    3. （就像Vue的`computed`一样，）getter的返回值会根据它的依赖被缓存起来，且只有当它的依赖值发生了改变才会被重新计算；若getter返回一个函数，每次都会去进行调用，而不会缓存结果。
 
-        - <details>
+    - <details>
+    
+        <summary><code>mapGetters</code></summary>
+    
+        返回对象，用于组件`computed`属性的简写（`data1 () { return this.$store.getters['getters1'] }`）。
         
-            <summary><code>mapGetters</code></summary>
+        ```javascript
+        // 组件中
+        import { mapGetters } from 'vuex'
         
-            返回对象，用于组件`computed`属性的简写。
-            
-            ```javascript
-            // 组件中
-            import { mapGetters } from 'vuex'
-            ...
-            
-            computed: {
-              ...mapGetters({
-                data1: 'getters1',
-                data2: 'getters2',
-              }),
-              // 或
-              ...mapGetters([ // computed使用与getters属性相同名字可用数组
-                'getters1',
-                'getters2'
-              ])
-            },
-            ```
-            </details>
-    3. `mutations`
+        new Vue({
+          computed: {
+            ...mapGetters({
+              data1: 'getters1',
+              data2: 'getters2',
+            }),
+            // 或
+            ...mapGetters([ // computed使用与getters属性相同名字可用数组
+              'getters1',
+              'getters2'
+            ])
+          }
+        })
+        ```
+        </details>
+3. `mutations`
 
-        改变state的唯一方式。
+    改变state的唯一方式。
 
-        1. 通过store调用`commit('mutation方法名'[, 参数])`触发。
-        2. 必须是同步函数。
+    1. 通过store调用`commit('mutation方法名'[, 参数])`或`commit({ type: 'mutation方法名'[, 参数的项: 值] })`触发。
+    2. 必须是同步函数。
 
-        - <details>
+    - <details>
+    
+        <summary><code>mapMutations</code></summary>
+    
+        返回对象，用于组件`methods`方法的简写（`method1 (data) { this.$store.commit('mutate1', data) }`）。
         
-            <summary><code>mapMutations</code></summary>
+        ```javascript
+        // 组件中
+        import { mapMutations } from 'vuex'
         
-            返回对象，用于组件`methods`方法的简写。
-            
-            ```javascript
-            // 组件中
-            import { mapMutations } from 'vuex'
-            ...
-            
-            methods: {
-              ...mapMutations({
-                method1: 'mutate1',
-                method2: 'mutate2',
-              }),
-              // 或
-              ...mapMutations([ // methods使用与mutations方法相同名字可用数组
-                'mutate1',
-                'mutate2'
-              ])
-            },
-            ```
-            </details>
-    4. `actions`
+        new Vue({
+          methods: {
+            ...mapMutations({ // 方法都可传参数。e.g. this.method1(参数)
+              method1: 'mutate1',
+              method2: 'mutate2',
+            }),
+            // 或
+            ...mapMutations([ // methods使用与mutations方法相同名字可用数组
+              'mutate1',
+              'mutate2'
+            ])
+          }
+        })
+        ```
+        </details>
+4. `actions`
 
-        仅触发mutations，而不直接改变~~state~~。
+    仅触发mutations，而不直接改变~~state~~。
 
-        1. 通过store调用`dispatch('action方法名'[, 参数])`触发。
-        2. 可以进行异步操作。
-        3. 第一个参数包含：`state`、`rootState`、`getters`、`rootGetters`、`commit`、`dispatch`
+    1. 通过store调用`dispatch('action方法名'[, 参数])`或`dispatch({ type: 'action方法名'[, 参数的项: 值] })`触发。
+    2. 可以进行异步操作。
+    3. 第一个参数对象包含：`state`、`getters`、`commit`、`dispatch`（，模块模式还有：`rootState`、`rootGetters`）。
+    
+    - <details>
+    
+        <summary><code>mapActions</code></summary>
+    
+        返回对象，用于组件`methods`方法的简写（`method1 (data) { this.$store.dispatch('act1', data) }`）。
         
-        - <details>
+        ```javascript
+        // 组件中
+        import { mapActions } from 'vuex'
         
-            <summary><code>mapActions</code></summary>
-        
-            返回对象，用于组件`methods`方法的简写。
-            
-            ```javascript
-            // 组件中
-            import { mapActions } from 'vuex'
-            ...
-            
-            methods: {
-              ...mapActions({
-                method1: 'act1',
-                method2: 'act2',
-              }),
-              // 或
-              ...mapActions([ // methods使用与actions方法相同名字可用数组
-                'act1',
-                'act2'
-              ])
-            },
-            ```
-            </details>
+        new Vue({
+          methods: {
+            ...mapActions({ // 方法都可传参数。e.g. this.method1(参数)
+              method1: 'act1',
+              method2: 'act2',
+            }),
+            // 或
+            ...mapActions([ // methods使用与actions方法相同名字可用数组
+              'act1',
+              'act2'
+            ])
+          }
+        })
+        ```
+        </details>
 
-    ><details>
-    >
-    ><summary>非模块模式使用vuex</summary>
-    >
-    >```javascript
-    >import Vue from 'vue'
-    >import Vuex from 'vuex'
-    >
-    >Vue.use(Vuex) // 注入
-    >
-    >export default new Vuex.Store({
-    >  state: { // 暴露的state数据
-    >    state1: 0,
-    >    state2: 0
-    >  },
-    >
-    >  getters: { // 暴露的state计算数据
-    >    getters1: (state, getters) => { // 第一个参数是state对象，第二个参数是getters对象（只读）
-    >      return state.state1
-    >    },
-    >    getters2: (state, getters) => {
-    >      return state.state2 + getters['getters1']
-    >    },
-    >    getters3: (state, getters) => { // 成员可以返回方法，若返回方法则不缓存，每次都需要调用执行
-    >      return () => state.state1 * 2
-    >    }
-    >  },
-    >
-    >  mutations: {  // 暴露的改变state的方法
-    >    mutate1 (state, 参数) { // 第一个参数是state对象，第二个参数是commit调用方法的第二个参数
-    >      // 仅同步操作
-    >      state.state1++
-    >    }
-    >  },
-    >
-    >  actions: {  // 暴露的触发mutations的方法（可异步操作，也可返回Promise对象，也可使用async-await，还可触发其他actions）
-    >    act1 (context, 参数) {  // 第一个参数是类似Vuex.Store实例对象（只读），第二个参数是dispatch调用方法的第二个参数
-    >      return new Promise((resolve, reject) => {
-    >        setTimeout(() => {
-    >          context.commit('mutate1', 参数)
-    >          resolve()
-    >        }, 0)
-    >      })
-    >    },
-    >    async act2 (context) {
-    >      await context.dispatch('act1', 123)  // 等待 act1 完成
-    >    }
-    >  }
-    >})
-    >
-    >
-    >// new Vue({ store: 上面导出的内容 })的实例中通过this.$store访问Vuex实例
-    >this.$store.state.state1            // 输出state
-    >this.$store.getters['getters1']     // 输出getters
-    >this.$store.getters['getters3']()   // 输出getters方法的值
-    >this.$store.commit('mutate1', 参数)  // 触发mutations
-    >this.$store.dispatch('act1', 参数)   // 触发actions
-    >```
-    ></details>
-2. 模块方式
+><details>
+>
+><summary>非模块模式使用vuex</summary>
+>
+>```javascript
+>import Vue from 'vue'
+>import Vuex from 'vuex'
+>
+>Vue.use(Vuex) // 注入
+>
+>export default new Vuex.Store({ // 导出Vuex实例
+>  state: { // 暴露的state数据
+>    state1: 0,
+>    state2: 0
+>  },
+>
+>  getters: { // 暴露的state计算数据
+>    getters1: (state, getters) => { // 第一个参数是state对象，第二个参数是getters对象（只读）
+>      return state.state1
+>    },
+>    getters2: (state, getters) => {
+>      return state.state2 + getters['getters1']
+>    },
+>    getters3: (state, getters) => { // 成员可以返回方法，若返回方法则不缓存，每次都需要调用执行
+>      return () => state.state1 * 2
+>    }
+>  },
+>
+>  mutations: {  // 暴露的改变state的方法
+>    mutate1 (state, 参数) { // 第一个参数是state对象，第二个参数是commit调用方法的第二个参数
+>      // 仅同步操作
+>      state.state1++
+>    }
+>  },
+>
+>  actions: {  // 暴露的触发mutations的方法（可异步操作，也可返回Promise对象，也可使用async-await，还可触发其他actions）
+>    act1 (context, 参数) {  // 第一个参数是类似Vuex.Store实例对象（只读），第二个参数是dispatch调用方法的第二个参数
+>      return new Promise((resolve, reject) => {
+>        setTimeout(() => {
+>          context.commit('mutate1', 参数)
+>          resolve()
+>        }, 0)
+>      })
+>    },
+>    async act2 (context) {
+>      await context.dispatch('act1', 123)  // 等待 act1 完成
+>    }
+>  }
+>})
+>
+>
+>// new Vue({ store: 上面导出的内容 })的实例中通过this.$store访问Vuex实例
+>this.$store.state.state1            // 输出state
+>this.$store.getters['getters1']     // 输出getters
+>this.$store.getters['getters3']()   // 输出getters方法的值
+>this.$store.commit('mutate1', 参数)  // 触发mutations
+>this.$store.dispatch('act1', 参数)   // 触发actions
+>```
+></details>
+
+5. 模块方式
 
     1. 模块内部
 
-        >模块vuex对根vuex对象均是只读。
+        >模块vuex对根vuex均是只读。
 
         1. getters的第三个参数`rootState`是根state、第四个参数`rootGetters`是根getters
         2. actions的第一个参数`context`的：`rootState`属性是根state、`rootGetters`属性是根getters
-        3. （带命名空间的）action内部
+        3. **（组件使用）** state需要增加路径：store的`state.模块路径.state名`获取。
+        4. 命名空间`namespaced`（主要针对getters、mutations、actions）
+    
+            1. `false`（默认）
+            
+                **（组件使用）** getters、mutations、actions是注册在全局命名空间，与非模块方式调用相同；无法针对某个模块而使用`mapState/mapGetters/mapActions/mapMutations`的第一个参数或`createNamespacedHelpers`。
+            2. `true`
+            
+                **（组件使用）** getters、mutations、actions调用要在名称中增加路径：`模块路径/名称`；可以针对某个模块而使用`mapState/mapGetters/mapActions/mapMutations`的第一个参数或`createNamespacedHelpers`。
+                
+                - actions的定义内部
+        
+                    1. 默认的`commit`和`dispatch`只对本模块；
+                    2. 添加`{ root: true }`至第三参数，表示针对根vuex：`commit('mutation方法名', 参数, { root: true })`、`dispatch('action方法名', 参数, { root: true })`
+    2. 动态注册`registerModule`、动态卸载`unregisterModule`
 
-            1. 默认的`commit`和`dispatch`这对本模块；
-            2. 添加`{ root: true }`至第三参数针对根vuex：`commit('mutation方法名', 参数, { root: true })`、`dispatch('action方法名', 参数, { root: true })`
-    2. 命名空间
+- 若在`new`Vue实例时，把（已经`Vue.use(Vuex)`的）Vuex.Store实例通过`store`属性注入，则子组件内就能通过`this.$store`访问此Vuex实例。
 
-        `namespaced`是否使用命名空间，针对`getters`、`mutations`、`actions`
-    3. 动态注册`registerModule`、动态卸载`unregisterModule`
+>- 建议的业务结构：
+>
+>    1. 在view层（页面.vue）触发`dispatch`（页面创建钩子触发或用户交互触发）。
+>    2. 在store模块内引入异步API模块，在actions内请求异步数据。
+>    3. 独立的API模块专门进行请求数据异步。
 
 ### [vue-cli](https://github.com/vuejs/vue-cli)
 快速构建Vue应用的脚手架，可以使用Vue官方或第三方模板来进行Vue应用的配置，主要包括webpack等工具的配置。
@@ -1476,7 +1560,6 @@
             // middleware/中间件文件名.js
             export default function (context) {
               // 路由跳转之后，且在每页渲染前运行
-              ...
             }
             ```
             
