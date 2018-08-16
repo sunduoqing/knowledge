@@ -1624,12 +1624,15 @@
 
     1. `Math.min(...[1, 2, 3])`或`Math.min.apply(null, [1, 2, 3])`
     2. `Math.max(...[1, 2, 3])`或`Math.max.apply(null, [1, 2, 3])`
-11. 设置CSS属性：
+11. 设置CSS的内嵌属性：
 
-    使用`cssText`返回CSS的实际文本（ie8-返回时不包含最后一个`;`）。
+    `dom.style`返回一个对象，包括此DOM的所有内嵌style（没值的默认：`''`）、`cssText`（有值的内嵌style文本）。
 
-    1. 添加：`dom.style.cssText += '; 样式: 属性; 样式: 属性'`
-    2. 替换：`dom.style.cssText = '样式: 属性; 样式: 属性'`
+    1. `cssText`（ie8-返回时不包含最后一个`;`）：
+
+        1. 添加：`dom.style.cssText += '; 样式: 属性; 样式: 属性'`
+        2. 替换：`dom.style.cssText = '样式: 属性; 样式: 属性'`
+    2. 删除某个内嵌style：`dom.style.某属性名 = ''`。
 12. 关闭、刷新前触发事件`beforeunload`：
 
     1. PC：若事件处理程序返回为`真`，则试图弹出对话框让用户选择是否继续操作。
