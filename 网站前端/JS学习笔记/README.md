@@ -1463,7 +1463,7 @@
             >1. 客户端注入方式：javascript伪协议方式`javascript: 代码`。
             >2. 注入JS代码可以在创建WebView之前（native code）或之后（全局变量JS注入）。
             >3. 若注入的方法为`undefined`，则认为不在此App内部。
-        2. `自定义URL Scheme`：拦截跳转（`<iframe>`或`<img>`设置`src`、点击`<a>`、`window.location.href`），触发Native行为。
+        2. `自定义URL Scheme`：拦截跳转（`<iframe>`或`<img>`设置`src`、点击`<a>`、`window.location.href`、`window.open`），触发Native行为。
 
             ><details>
             ><summary><code>URL Scheme</code></summary>
@@ -2228,7 +2228,7 @@
 >伪协议（自定义协议）：操作系统提供支持的、为关联应用程序而使用的、在标准协议（`http`、`https`、`ftp`等）之外的，一种协议（`mailto`、`tel`、`file`、`data`、`自定义URL Scheme`等）。
 
 1. 由JS解释器运行，若最后一个执行结果（`;`分割执行语句）是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）。
-2. 所有直接修改URL的地方都可使用，如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`。
+2. 所有直接修改URL的地方都可使用，如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`，`window.open`。
 3. 为了JS与HTML解耦合，尽量不要使用其进行JS逻辑。
 
 ---
