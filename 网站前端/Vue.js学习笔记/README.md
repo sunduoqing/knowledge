@@ -481,7 +481,7 @@
         <details>
         <summary>生命周期图示</summary>
 
-        ![vue生命周期](./images/vue-lifecycle-1.png)
+        ![vue生命周期图](./images/vue-lifecycle-1.png)
         </details>
     9. `mixins`（数组，每一项为Vue实例的属性）：混入
 

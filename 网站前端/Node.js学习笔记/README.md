@@ -45,7 +45,7 @@
 3. [libuv](https://github.com/libuv/libuv)负责Node API的执行。将不同的任务分配给不同的线程，形成一个Event Loop（事件循环），以异步的方式将任务的执行结果返回给V8引擎。
 4. V8引擎再将结果返回给用户。
 
-![Node.js的事件循环](./images/nodejs-system-1.png)
+![Node.js的事件循环图](./images/nodejs-system-1.png)
 
 ### npm
 1. 命令
@@ -350,7 +350,7 @@
 
         - 示例图
 
-            ![Node.js的require流程](./images/nodejs-require-1.jpg)
+            ![Node.js的require流程图](./images/nodejs-require-1.jpg)
 
         1. 如果 X 以`/`、`./`或`../`开头
 
