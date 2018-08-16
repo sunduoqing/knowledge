@@ -33,6 +33,7 @@
     1. [预加载](#预加载)
     1. [循环遍历](#循环遍历)
     1. [判断对象、方法是否定义](#判断对象方法是否定义)
+    1. [javascript伪协议](#javascript伪协议)
 1. [性能原理](#性能原理)
 
     1. [JS的预编译](#js的预编译)
@@ -1259,7 +1260,7 @@
         1. 为JS代码预留出退路（`<a>`添加属性链接，用JS事件绑定去拦截浏览器默认行为）
 
             `<a href="真实地址" class="j-func">...</a>`
-        2. ~~伪协议`javascript:`~~
+        2. ~~javascript伪协议`javascript:`~~
 
             `<a href="javascript: func();">...</a>`
         3. ~~内嵌事件处理程序~~
@@ -1426,7 +1427,7 @@
         4. URL限定，跨域问题的解决方案。
     3. 身份验证机制
 
-        >客户端注入方式：JS伪协议方式`javascript: 代码`。
+        >客户端注入方式：javascript伪协议方式`javascript: 代码`。
 
         Native创建WebView时，根据客户端登录情况注入跟登录有关的cookie（session_id）或token。
     4. Hybrid开发测试
@@ -1455,25 +1456,31 @@
         >    2. 匿名函数->客户端调用`(匿名函数(JSON数据))`
         >2. iOS、Android的WebView无法判断是否安装了其他App。
         >3. 可以通过`查看注入的全局方法`或`客户端调用回调函数`来判定H5页面是否在具体App内打开。
-        >4. **桥协议**仅在APP内部起作用；**Scheme**是系统层面，所以可以额外针对跨APP起作用（如分享去其他APP）；iOS的**通用链接**可以认为是高级的Scheme。
+        >4. `桥协议`仅在APP内部起作用；`自定义URL Scheme`是系统层面，所以可以额外针对跨APP起作用（如分享去其他APP）；iOS的**通用链接**可以认为是高级的`自定义URL Scheme`。
 
-        1. 桥协议：Native注入全局方法至WebView的`window`，前端调用则客户端拦截后触发Native行为。
+        1. `桥协议`：Native注入全局方法至WebView的`window`，前端调用则客户端拦截后触发Native行为。
 
-            >1. 客户端注入方式：JS伪协议方式`javascript: 代码`。
+            >1. 客户端注入方式：javascript伪协议方式`javascript: 代码`。
             >2. 注入JS代码可以在创建WebView之前（native code）或之后（全局变量JS注入）。
             >3. 若注入的方法为`undefined`，则认为不在此App内部。
-        2. 自定义Scheme：拦截跳转（`<iframe>`设置`src`、点击`<a>`、`document.location.href`），触发Native行为。
+        2. `自定义URL Scheme`：拦截跳转（`<iframe>`或`<img>`设置`src`、点击`<a>`、`window.location.href`），触发Native行为。
+
+            ><details>
+            ><summary><code>URL Scheme</code></summary>
+
+            >是iOS和Android提供给开发者的一种WAP唤醒原生APP方式。Android应用在mainfest中注册自己的Scheme；iOS应用在APP属性中配置。典型的URL Scheme：`myscheme://my.hostxxxxxxx`。
+            ></details>
 
             >1. 客户端可以捕获、拦截任何行为（如`console`、`alert`）。相对于注入全局变量，拦截方式可以隐藏具体JS业务代码，且不会被重载，方便针对不可控的环境。
             >2. 有些App会设置允许跳转的其他App的白名单或黑名单，如微信白名单。
             >3. 除了增加回调函数且被客户端调用，否则无法判定是否在此App内部。
-            >4. 跨APP使用Scheme，Scheme后面的字符串产生的行为仅目的APP能理解。
+            >4. 跨APP使用`自定义URL Scheme`，其后面的字符串要产生的行为仅目的APP能理解。
 
             1. iOS8-
 
                 ```javascript
                 var iframe = document.createElement('iframe');
-                iframe.src = '自定义 URL scheme';
+                iframe.src = '自定义URL Scheme';
                 iframe.style.display = 'none';
                 document.body.appendChild(iframe);
                 setTimeout(function () {
@@ -1487,7 +1494,7 @@
                 >`<iframe>`无效。
 
                 ```javascript
-                location.href = '自定义 URL scheme';
+                location.href = '自定义URL Scheme';
 
                 setTimeout(function () {
                   location.href = '下载地址';
@@ -1499,7 +1506,7 @@
             3. Android
 
                 ```javascript
-                location.href = '自定义 URL scheme';	  // 也可以用iframe
+                location.href = '自定义URL Scheme';	  // 也可以用iframe
 
                 var start = Date.now();
                 setTimeout(function () {    // 尝试通过上面的唤起方式唤起本地客户端，若唤起超时（还在这个页面），则直接跳转到下载页（或做其他未安装App的事情）
@@ -2209,6 +2216,12 @@
         /* 对象已定义 可操作 */
     }
     ```
+
+### javascript伪协议
+>伪协议（自定义协议）：操作系统提供支持的、为关联应用程序而使用的、在标准协议（`http`、`https`、`ftp`等）之外的，一种协议（`mailto`、`tel`、`file`、`data`、`自定义URL Scheme`等）。
+
+1. 由JS解释器运行，最后一个执行结果（`;`分割执行语句），若是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）。
+2. 所有直接修改URL的地方都可以使用（但尽量不要使用），如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`。
 
 ---
 ## 性能原理

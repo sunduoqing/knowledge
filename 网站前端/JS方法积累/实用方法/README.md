@@ -1971,7 +1971,7 @@ function getAbsoluteUrl(url) {
 
     if (typeof url === 'undefined') {
 
-        return document.location.href;
+        return window.location.href;
     } else {
         domA = document.createElement('a');
         domA.href = url;
@@ -3316,7 +3316,7 @@ function getResponseHeaders(requestName) {
 
     $.ajax({
         type: 'HEAD',
-        url: document.location.href,
+        url: window.location.href,
         async: false,
         complete: function (xhr, data) {
             var responseHeaders, headerArr, i;
