@@ -1259,11 +1259,9 @@
         1. 为JS代码预留出退路（`<a>`添加属性链接，用JS事件绑定去拦截浏览器默认行为）
 
             `<a href="真实地址" class="j-func">...</a>`
-
         2. ~~伪协议`javascript:`~~
 
             `<a href="javascript: func();">...</a>`
-
         3. ~~内嵌事件处理程序~~
 
             `<a href="#" onclick="func();return false;">...</a>`
