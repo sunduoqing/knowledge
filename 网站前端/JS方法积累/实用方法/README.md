@@ -1983,6 +1983,8 @@ function getAbsoluteUrl(url) {
 ```
 
 ### *原生JS*不传递请求头的Referrer进行跳转
+>注意：内容安全策略（Content-Security-Policy，CSP）的`script-src`会限制内联脚本运行（导致以下代码无法实现跳转）。
+
 ```javascript
 // 不发送referrer的当前页面跳转
 function noreferrerOpen (link) {
