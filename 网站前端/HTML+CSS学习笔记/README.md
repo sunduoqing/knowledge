@@ -1371,21 +1371,22 @@
 2. `<a>`的属性`target="_blank"`，在一些浏览器中，无论`href`值是什么内容（包括`#`和`javascript: void(0);`）都会打开新页面。
 3. 在拥有`target="_blank"`的`<a>`中添加`rel="noopener"`或`rel="noreferrer"`。
 
+    >没有`target="_blank"`属性的新打开的页面和原页面不存在关系。
+
     1. 没有添加额外的`rel`属性：
 
         1. 新页面将与原页面在同一个进程上运行，若执行开销大的JS，会互相影响性能。
-        2. 新页面可以通过`window.opener`访问原窗口对象，并使用`window.opener.location = ''`将原页面导航至不同的网址。
+        2. 新页面可以通过`window.opener`访问原窗口对象，并使用`window.opener.location = ''`将改变原页面导航。
 
         ![chrome任务管理器图](./images/chrome-task-1.png)
     2. 添加额外的`rel`属性：
 
         1. `rel="noopener"`：
 
-            `window.opener`返回`null`。
+            不在一个进程、且`window.opener`返回`null`。
         2. `rel="noreferrer"`（不限于`target="_blank"`）：
 
-            （`window.opener`返回`null`，）http请求不发送`Referer`，因此`document.referrer`返回`''`。
-    >没有`target="_blank"`属性的新打开的页面和原页面不存在关系。
+            （不在一个进程、且`window.opener`返回`null`，）http请求不发送`Referer`（`document.referrer`返回`''`）。
 4. 404和5xx错误需要制作页面。
 5. 没有设置宽度的`float`元素，其宽度等于子节点宽度：
 
