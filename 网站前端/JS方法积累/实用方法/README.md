@@ -54,6 +54,7 @@
         1. [分割数组](#原生js分割数组)
         1. [加入收藏夹](#原生js加入收藏夹)
         1. [从字符串中获取绝对路径](#原生js从字符串中获取绝对路径)
+        1. [不传递请求头的Referrer进行跳转](#原生js不传递请求头的referrer进行跳转链接)
         1. [格式化接口返回的数据](#原生js格式化接口返回的数据)
         1. [根据滚动方向执行函数](#原生js根据滚动方向执行函数)
     1. 提升性能
@@ -1978,6 +1979,23 @@ function getAbsoluteUrl(url) {
 
         return domA.href;
     }
+}
+```
+
+### *原生JS*不传递请求头的Referrer进行跳转
+```javascript
+// 不发送referrer的当前页面跳转
+function noreferrerOpen (link) {
+  const iframe = document.createElement('iframe')
+  iframe.style.display = 'none'
+  iframe.src = `javascript: "<script>top.location.replace('${link}')<\/script>"`
+  document.body.appendChild(iframe)
+}
+
+
+// 不发送referrer的新窗口打开
+function noreferrerOpenNew (full_link) {  // 需要完整URL
+  window.open(`javascript: window.name`, `<script>location.replace('${full_link}')<\/script>`)
 }
 ```
 
