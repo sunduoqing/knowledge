@@ -1997,7 +1997,8 @@ function noreferrerOpen (link) {
 
 // 不发送referrer的新窗口打开
 function noreferrerOpenNew (fullLink) {  // 需要完整URL
-  window.open(`javascript: window.name`, `<script>location.replace('${fullLink}')<\/script>`)
+  // 此时只能父级向子级通信；若父级修改子级的location，则父子重新建立连接且子级有referrer
+  return window.open(`javascript: window.name`, `<script>location.replace('${fullLink}')<\/script>`)
 }
 ```
 
