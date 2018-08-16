@@ -2227,9 +2227,9 @@
 ### javascript伪协议
 >伪协议（自定义协议）：操作系统提供支持的、为关联应用程序而使用的、在标准协议（`http`、`https`、`ftp`等）之外的，一种协议（`mailto`、`tel`、`file`、`data`、`自定义URL Scheme`等）。
 
-1. 由JS解释器运行，若最后一个执行结果（`;`分割执行语句）是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）。
-2. 所有直接修改URL的地方都可使用，如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`，`window.open`。
-3. 为了JS与HTML解耦合，尽量不要使用其进行JS逻辑。
+1. 由JS解释器运行，若最后一个执行结果（`;`分割执行语句）是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）
+2. 所有直接修改URL的地方都可使用，如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`，`window.open`
+3. 为了JS与HTML解耦合，尽量不要使用其进行JS逻辑
 
 ---
 ## 性能原理
