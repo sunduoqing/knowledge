@@ -1994,8 +1994,8 @@ function noreferrerOpen (link) {
 
 
 // 不发送referrer的新窗口打开
-function noreferrerOpenNew (full_link) {  // 需要完整URL
-  window.open(`javascript: window.name`, `<script>location.replace('${full_link}')<\/script>`)
+function noreferrerOpenNew (fullLink) {  // 需要完整URL
+  window.open(`javascript: window.name`, `<script>location.replace('${fullLink}')<\/script>`)
 }
 ```
 
