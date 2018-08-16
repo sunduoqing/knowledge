@@ -1260,7 +1260,7 @@
         1. 为JS代码预留出退路（`<a>`添加属性链接，用JS事件绑定去拦截浏览器默认行为）
 
             `<a href="真实地址" class="j-func">...</a>`
-        2. ~~javascript伪协议`javascript:`~~
+        2. ~~javascript伪协议~~
 
             `<a href="javascript: func();">...</a>`
         3. ~~内嵌事件处理程序~~
@@ -1275,7 +1275,7 @@
     4. 资源分离：把样式表、脚本分离出HTML。
 
         1. 使用外部资源。
-        2. 不在HTML内嵌事件处理程序。
+        2. 不在HTML内嵌：事件处理程序、javascript伪协议。
         3. 对只为DOM增添的内容，转移到外部资源中动态创建。
     5. 性能优化[从URL输入之后](https://github.com/realgeoffrey/knowledge/blob/master/网站前端/前端内容/README.md#页面加载解析步骤)就开始考虑。
 
@@ -1467,7 +1467,7 @@
 
             ><details>
             ><summary><code>URL Scheme</code></summary>
-
+            >
             >是iOS和Android提供给开发者的一种WAP唤醒原生APP方式。Android应用在mainfest中注册自己的Scheme；iOS应用在APP属性中配置。典型的URL Scheme：`myscheme://my.hostxxxxxxx`。
             ></details>
 
@@ -2220,8 +2220,9 @@
 ### javascript伪协议
 >伪协议（自定义协议）：操作系统提供支持的、为关联应用程序而使用的、在标准协议（`http`、`https`、`ftp`等）之外的，一种协议（`mailto`、`tel`、`file`、`data`、`自定义URL Scheme`等）。
 
-1. 由JS解释器运行，最后一个执行结果（`;`分割执行语句），若是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）。
-2. 所有直接修改URL的地方都可以使用（但尽量不要使用），如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`。
+1. 由JS解释器运行，若最后一个执行结果（`;`分割执行语句）是`String`类型，则返回给当前页面替换原页面内容（允许任何HTML标签）。
+2. 所有直接修改URL的地方都可使用，如：`<a>`、`<iframe>`、`<img>`的`src`属性，`window.location.href`。
+3. 为了JS与HTML解耦合，尽量不要使用其进行JS逻辑。
 
 ---
 ## 性能原理
