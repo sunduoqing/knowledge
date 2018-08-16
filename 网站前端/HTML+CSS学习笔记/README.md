@@ -1380,8 +1380,8 @@
 
         ><details>
         ><summary>chrome任务管理器展示：<code>target="_blank"</code>但未设置<code>rel</code></summary>
-
-        ![chrome任务管理器图](./images/chrome-task-1.png)
+        >
+        >![chrome任务管理器图](./images/chrome-task-1.png)
         ></details>
     2. 添加额外的`rel`属性：
 
