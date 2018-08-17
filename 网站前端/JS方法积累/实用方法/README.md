@@ -130,7 +130,7 @@ function detectOS (ua, pf) {
 
 ### *原生JS*判断移动平台
 ```javascript
-// 判断移动平台（微信、QQ、微博、QQ空间）
+// 判断移动平台（微信、QQ、微博、QQ空间、UC浏览器）
 function platform (ua) {
   ua = ua || window.navigator.userAgent
 
@@ -144,6 +144,8 @@ function platform (ua) {
     platform = 'weibo'
   } else if (/Qzone\//.test(ua)) {
     platform = 'qzone'
+  } else if (/UCBrowser/.test(ua)) {
+    platform = 'uc'
   } else {
     platform = 'other'
   }
