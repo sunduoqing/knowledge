@@ -127,7 +127,7 @@ function detectOS (ua, pf) {
   return os
 }
 ```
->判断是否是PC还是WAP：`if (/AppleWebKit.*Mobile/.test(window.navigator.userAgent)) { /* WAP */ } else { /* PC */ }`
+>判断是WAP还是PC：`if (/AppleWebKit.*Mobile/.test(window.navigator.userAgent)) { /* WAP */ } else { /* PC */ }`
 
 ### *原生JS*判断移动平台
 ```javascript
